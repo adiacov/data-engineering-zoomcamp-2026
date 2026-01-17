@@ -251,5 +251,16 @@ terraform.rc
 # Uncomment the line below if you want to ignore planout files.
 # planout
 
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+!*.code-workspace
+
+# Built Visual Studio Code Extensions
+*.vsix
+
 # Custom
 *.parquet
