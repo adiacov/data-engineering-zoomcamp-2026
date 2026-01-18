@@ -264,3 +264,4 @@ terraform.rc
 
 # Custom
 *.parquet
+dev/

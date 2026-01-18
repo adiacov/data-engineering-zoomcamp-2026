@@ -1,8 +1,9 @@
 import pandas as pd
 
 from pathlib import Path
+import os
 
-DATA_PATH = Path(__file__).resolve().parent / "data"
+DATA_PATH = Path(os.getcwd()) / "data"
 data_in = DATA_PATH / "raw.csv"
 data_out = DATA_PATH / "processed.parquet"
 

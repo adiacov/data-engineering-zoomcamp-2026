@@ -1,19 +1,18 @@
 FROM python:3.13-slim
 
-# set application directory
 WORKDIR /app
 
-# create virtual environment inside the image
-RUN python -m venv .venv
+# Copy project metadata
+COPY pyproject.toml /app/
 
-# make .venv the default python
-ENV PATH="./venv/bin:$PATH"
+# Copy data
+COPY data/ /app/data/
 
-# copy project source
-COPY pipeline/ /app/
+# Copy source code
+COPY src/ /app/src/
 
-# install project and dependencies
-RUN pip install --no-cache-dir .
+# Install project and dependencies
+RUN python -m pip install --no-cache-dir .
 
-# default command
-CMD ["python", "pipeline.py"]
+# Default command
+CMD ["python", "-m", "pipeline.pipeline"]
