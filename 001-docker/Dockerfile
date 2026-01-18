@@ -15,4 +15,4 @@ COPY src/ /app/src/
 RUN python -m pip install --no-cache-dir .
 
 # Default command
-CMD ["python", "-m", "pipeline.pipeline"]
+ENTRYPOINT ["python", "-m", "pipeline.ingest_data"]

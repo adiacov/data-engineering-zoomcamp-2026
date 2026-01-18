@@ -6,15 +6,21 @@ package_name=pipeline
 docker-build:
 	docker build -t $(package_name):$(version) .
 
-# docker-run:
-# 	docker run --rm $(package_name):$(version)
-
 docker-run:
-	docker run --rm -v $(PWD)/data:/app/data $(package_name):$(version)
+	docker run -it --rm \
+	--network=001-docker_default \
+	-e DB_HOST=postgres \
+	$(package_name):$(version) \
+	--year 2021 \
+	--month 1 \
+	--chunksize 100000 \
+	--db-user postgres \
+	--db-password postgres \
+	--db-name ny_taxi \
+	--db_table yellow_taxi_data
 
 docker-debug:
-# 	docker run -it --rm $(package_name):$(version) bash
-	docker run -it --rm -v $(PWD)/data:/app/data $(package_name):$(version) bash
+	docker run -it --rm $(package_name):$(version) bash
 
 # Docker cleanup for this project only
 docker-clean:
@@ -29,7 +35,14 @@ build:
 	python -m pip install -e .
 
 run:
-	python src/$(package_name)/pipeline.py
+	python -m $(package_name).ingest_data.py \
+	--year 2021 \
+	--month 1 \
+	--chunksize 100000 \
+	--db-user postgres \
+	--db-password postgres \
+	--db-name ny_taxi \
+	--db_table yellow_taxi_data
 
 clean:
 	rm -rf build dist *.egg-info src/$(package_name).egg-info
@@ -37,4 +50,4 @@ clean:
 # Multi-step commands
 all: clean build run
 
-docker-all: docker-clean docker-build docker-run
+docker-all: docker-build docker-run
