@@ -33,9 +33,11 @@ docker-clean:
 # Project commands
 build:
 	python -m pip install -e .
+# 	python -m pip install -r requirements.txt && \
+	python -m pip install -e .
 
 run:
-	python -m $(package_name).ingest_data.py \
+	python -m $(package_name).ingest_data \
 	--year 2021 \
 	--month 1 \
 	--chunksize 100000 \
@@ -45,7 +47,7 @@ run:
 	--db_table yellow_taxi_data
 
 clean:
-	rm -rf build dist *.egg-info src/$(package_name).egg-info
+	rm -rf build dist **/*.egg-info
 
 # Multi-step commands
 all: clean build run

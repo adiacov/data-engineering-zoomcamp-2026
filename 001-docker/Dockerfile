@@ -2,17 +2,17 @@ FROM python:3.13-slim
 
 WORKDIR /app
 
-# Copy project metadata
-COPY pyproject.toml /app/
+# 1. Copy dependency files first (cache-friendly)
+COPY requirements.txt .
+# COPY pyproject.toml .
 
-# Copy data
-COPY data/ /app/data/
+# 2. Install dependencies once
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy source code
-COPY src/ /app/src/
+# 3. Copy source code last
+COPY src/ ./src/
 
-# Install project and dependencies
-RUN python -m pip install --no-cache-dir .
+# 4. Ensure src is importable
+ENV PYTHONPATH=/app/src
 
-# Default command
 ENTRYPOINT ["python", "-m", "pipeline.ingest_data"]
