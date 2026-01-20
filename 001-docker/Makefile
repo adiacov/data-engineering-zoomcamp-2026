@@ -4,12 +4,15 @@ package_name=pipeline
 
 # Docker commands
 docker-build:
-	docker build -t $(package_name):$(version) .
+	docker build -t $(package_name):$(version) . && \
+	docker volume create ny_taxi_data
 
 docker-run:
 	docker run -it --rm \
 	--network=001-docker_default \
+	-v ny_taxi_data:/data \
 	-e DB_HOST=postgres \
+	-e DATA_DIR=/data \
 	$(package_name):$(version) \
 	--year 2021 \
 	--month 1 \
@@ -17,7 +20,7 @@ docker-run:
 	--db-user postgres \
 	--db-password postgres \
 	--db-name ny_taxi \
-	--db_table yellow_taxi_data
+	--db-table-prefix yellow_taxi_data
 
 docker-debug:
 	docker run -it --rm $(package_name):$(version) bash
@@ -32,8 +35,7 @@ docker-clean:
 
 # Project commands
 build:
-	python -m pip install -e .
-# 	python -m pip install -r requirements.txt && \
+	python -m pip install -r requirements.txt && \
 	python -m pip install -e .
 
 run:
@@ -44,7 +46,7 @@ run:
 	--db-user postgres \
 	--db-password postgres \
 	--db-name ny_taxi \
-	--db_table yellow_taxi_data
+	--db-table-prefix yellow_taxi_data
 
 clean:
 	rm -rf build dist **/*.egg-info
