@@ -1,23 +1,33 @@
 FROM python:3.13-slim
 
+# -----------------------------
+# Runtime setup
+# -----------------------------
 WORKDIR /app
 
-# 1. Copy dependency files first (cache-friendly)
-COPY requirements.txt pyproject.toml .
+# Install uv (tiny, cache-friendly)
+RUN pip install --no-cache-dir uv
 
-# 2. Install dependencies once
-RUN pip install --no-cache-dir -r requirements.txt
+# -----------------------------
+# Dependency layer (cached)
+# -----------------------------
+# Copy dependency metadata + wheels from repo root
+COPY pyproject.toml uv.lock ./
+COPY dist/ ./dist/
 
-# 3. Copy source code last
-COPY src/ ./src/
+# Install all dependencies + internal packages
+RUN uv pip install --system --no-cache ./dist/*.whl
 
-# 4. Ensure src is importable
-ENV PYTHONPATH=/app/src
+ENV PROJECT_ROOT=/app
 
-# Create data directory. Need to behave the same as local - download only once
+# -----------------------------
+# Data directory (externalized)
+# -----------------------------
 RUN mkdir -p /data
-
-# Persistent volume for data
 VOLUME ["/data"]
+ENV DATA_DIR=/Data
 
+# -----------------------------
+# Entrypoint
+# -----------------------------
 ENTRYPOINT ["python", "-m", "pipeline.ingest_data"]

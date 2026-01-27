@@ -10,12 +10,14 @@ import os
 from pathlib import Path
 from typing import Literal
 
+from common.config import get_root_path
+
 # In a real application, this and other settings should be provided via environment variables
 _DB_HOST = os.getenv("DB_HOST", "localhost")
-_BASE_DIR = Path(__file__).resolve().parents[2]
+_ROOT_PATH = get_root_path()
 
 # resolve local vs docker path to /data folder
-_DATA_PATH = Path(os.getenv("DATA_DIR", _BASE_DIR / "data"))
+_DATA_PATH = Path(os.getenv("DATA_DIR", _ROOT_PATH / "data"))
 _METADATA_PATH = _DATA_PATH / "ingestion-metadata.csv"
 
 # Ensure data directory exists

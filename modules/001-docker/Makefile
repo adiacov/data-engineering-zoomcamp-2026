@@ -1,57 +1,63 @@
-# Project metadata
-version=0.0.1
-package_name=pipeline
+# -----------------------------
+# Module 001-docker
+# -----------------------------
 
-# Docker commands
+# Module metadata
+VERSION := 0.0.1
+PACKAGE_NAME := pipeline
+IMAGE_NAME := $(PACKAGE_NAME):$(VERSION)
+DIST_NAME := $(PACKAGE_NAME)-$(VERSION)
+
+# Paths (relative to module's Makefile)
+ROOT_PATH := $(abspath ../../)# two levels up from module
+DIST_PATH := $(ROOT_PATH)/dist
+SRC_PATH := src/pipeline
+DOCKERFILE := docker/Dockerfile
+
+# UV / Python (local dev)
+run:
+	uv run $(SRC_PATH)/ingest_data.py \
+		--year 2021 \
+		--month 1 \
+		--chunksize 100000 \
+		--db-user postgres \
+		--db-password postgres \
+		--db-name ny_taxi \
+		--db-table-prefix yellow_taxi_data
+
+clean:
+	@echo "Deleting all $(PACKAGE_NAME)-$(VERSION) source distributions and wheels from $(DIST_PATH)"
+	rm -f "$(ROOT_PATH)/dist/$(PACKAGE_NAME)-"*
+
+
+# Docker commands (local dev)
 docker-build:
-	docker build -t $(package_name):$(version) . && \
-	docker volume create ny_taxi_data
+	docker build \
+		-f $(DOCKERFILE) \
+		-t $(IMAGE_NAME) \
+		$(ROOT_PATH)
 
 docker-run:
 	docker run -it --rm \
-	--network=001-docker_default \
-	-v ny_taxi_data:/data \
-	-e DB_HOST=postgres \
-	-e DATA_DIR=/data \
-	$(package_name):$(version) \
-	--year 2021 \
-	--month 1 \
-	--chunksize 100000 \
-	--db-user postgres \
-	--db-password postgres \
-	--db-name ny_taxi \
-	--db-table-prefix yellow_taxi_data
+		--network=de_zoomcamp_network \
+		-e DB_HOST=postgres \
+		-e DATA_DIR=/data \
+		-v $(pwd)/data:/data \
+		$(IMAGE_NAME) \
+		--year 2021 \
+		--month 1 \
+		--chunksize 100000 \
+		--db-user postgres \
+		--db-password postgres \
+		--db-name ny_taxi \
+		--db-table-prefix yellow_taxi_data
 
 docker-debug:
-	docker run -it --rm $(package_name):$(version) bash
+	docker run -it --rm \
+		$(IMAGE_NAME) \
+		bash
 
-# Docker cleanup for this project only
 docker-clean:
-# Remove any stopped containers from this image
-	-docker ps -a -q --filter ancestor=$(package_name):$(version) | xargs -r docker rm
-# Remove the project image
-	-docker rmi -f $(package_name):$(version)
-
-
-# Project commands
-build:
-	python -m pip install -r requirements.txt && \
-	python -m pip install -e .
-
-run:
-	python -m $(package_name).ingest_data \
-	--year 2021 \
-	--month 1 \
-	--chunksize 100000 \
-	--db-user postgres \
-	--db-password postgres \
-	--db-name ny_taxi \
-	--db-table-prefix yellow_taxi_data
-
-clean:
-	rm -rf build dist **/*.egg-info
-
-# Multi-step commands
-all: clean build run
+	-docker rmi -f $(IMAGE_NAME)
 
 docker-all: docker-build docker-run

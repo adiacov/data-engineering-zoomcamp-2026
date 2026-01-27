@@ -89,5 +89,7 @@ venv/
 .vscode/
 
 # Custom
-dev/
 **/*.parquet
+modules/
+dev/
+data/

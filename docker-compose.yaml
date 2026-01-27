@@ -1,6 +1,12 @@
+networks:
+  de_zoomcamp_network:
+    name: de_zoomcamp_network
+    driver: bridge
+
 services:
   postgres:
     image: postgres:18
+    container_name: postgres
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -9,9 +15,12 @@ services:
       - 5432:5432
     volumes:
       - ny_taxi_postgres_data:/var/lib/postgresql
+    networks:
+      - de_zoomcamp_network
 
   pgadmin:
     image: dpage/pgadmin4
+    container_name: pgadmin
     environment:
       PGADMIN_DEFAULT_EMAIL: "admin@admin.com"
       PGADMIN_DEFAULT_PASSWORD: "admin"
@@ -19,8 +28,9 @@ services:
       - pgadmin_data:/var/lib/pgadmin
     ports:
       - 5050:80
+    networks:
+      - de_zoomcamp_network
 
 volumes:
   ny_taxi_postgres_data:
   pgadmin_data:
-    
