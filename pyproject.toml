@@ -1,3 +1,2 @@
 [tool.uv.workspace]
 members = ["modules/*"]
-exclude = ["modules/002-workflow-orchestration"]

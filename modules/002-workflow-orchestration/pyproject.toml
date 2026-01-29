@@ -1,0 +1,23 @@
+[project]
+name = "workflow"
+version = "0.1.0"
+description = "Data Engineering Zoomcamp — Module 02 Workflow orchestration"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    # module dependencies
+    "common",
+
+    # tool dependencies
+    "requests>=2.32.5",
+]
+
+[project.scripts]
+migrate_flows = "workflow.migrate_flows:main"
+
+[tool.uv.sources]
+common = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
