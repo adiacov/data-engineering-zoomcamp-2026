@@ -1,13 +1,17 @@
-id: elt_taxi_data_local_db
-namespace: zoomcamp
-description: ELT pipeline for NY taxi trip data
+id: etl_taxi_data_local_db
+namespace: de_zoomcamp
+description: ETL pipeline for NY taxi trip data
+
+labels:
+  scope: learn
+  action: create
 
 inputs:
   - id: year
     description: Dataset year. Default 2021.
     type: SELECT
     required: true
-    values: [ "2019", "2020", "2021" ]
+    values: ["2019", "2020", "2021"]
     defaults: "2021"
 
   - id: month
@@ -33,18 +37,16 @@ inputs:
     description: Dataset name prefix. Default `green`.
     type: SELECT
     required: true
-    values: [ "green", "yellow" ]
+    values: ["green", "yellow"]
     defaults: "green"
 
 variables:
   month_num: "{{ inputs.month | split(':') | first }}"
   dataset_name: "{{ inputs.dataset_prefix}}_tripdata_{{ inputs.year }}-{{ render(vars.month_num) }}"
   dataset_url: "https://github.com/DataTalksClub/nyc-tlc-data/releases/download/{{ inputs.dataset_prefix }}/{{ render(vars.dataset_name) }}.csv.gz"
-  dataset_path: "kestra:///taxi"
+  dataset_path: "/app/storage/taxi"
   dataset_file: "{{ render(vars.dataset_name) }}.csv"
   dataset_uri: "{{ render(vars.dataset_path)}}/{{ render(vars.dataset_file) }}"
-
-
 
 tasks:
   # Set flow metadata labels
@@ -57,21 +59,27 @@ tasks:
 
   # Get the file size, needed for existence check
   - id: check_file_exists
-    type: io.kestra.plugin.core.storage.Size
-    description: Gets the file size. Allowed to fail if file does not exist.
-    uri: "{{ render(vars.dataset_uri) }}"
-    allowFailure: true
+    type: io.kestra.plugin.scripts.shell.Commands
+    taskRunner:
+      type: io.kestra.plugin.core.runner.Process
+    commands:
+      - |
+        if [ -f "{{ render(vars.dataset_uri) }}" ]; then
+          echo '::{"outputs":{"file":"EXISTS"}}::'
+        else
+          echo '::{"outputs":{"file":"MISSING"}}::'
+        fi
 
   # Download CSV file if it does not exists.
   - id: extract
     type: "io.kestra.plugin.core.flow.If"
     description: Downloads a file given a URI if missing, skip otherwise
-    condition: "{{ outputs.check_file_exists.size > 0 }}"
+    condition: "{{ outputs.check_file_exists.vars.file == 'EXISTS' }}"
     then:
       # File exists locally, skip download
       - id: download_skip
         type: io.kestra.plugin.core.log.Log
-        message: 
+        message:
           - "The file {{ render(vars.dataset_file) }} exists at {{ render(vars.dataset_uri) }}"
           - "Skip download"
     else:
@@ -79,7 +87,7 @@ tasks:
       - id: download_file
         type: io.kestra.plugin.scripts.shell.Commands
         commands:
-          - "mkdir -p /app/storage/main/taxi"
-          - "wget -qO- {{ render(vars.dataset_url) }} | gunzip > /app/storage/main/taxi/{{ render(vars.dataset_file) }}"
+          - "mkdir -p {{ render(vars.dataset_path) }}"
+          - "wget -qO- {{ render(vars.dataset_url) }} | gunzip > {{ render(vars.dataset_uri) }}"
         taskRunner:
           type: io.kestra.plugin.core.runner.Process

@@ -16,7 +16,7 @@ PASSWORD = "Admin1234"
 
 def upload_flows_from_dir(flows_dir: Path):
     # Find all YAML files
-    flow_files = list(flows_dir.glob("*.yaml"))
+    flow_files = list(flows_dir.glob("**/*.yaml"))
     if not flow_files:
         logger.warning("No YAML flow files found in %s", flows_dir)
         return

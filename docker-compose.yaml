@@ -31,6 +31,7 @@ services:
 
   kestra_postgres:
     image: postgres:18
+    container_name: kestra_db
     volumes:
       - kestra_postgres_data:/var/lib/postgresql
     environment:
@@ -47,6 +48,7 @@ services:
 
   kestra:
     image: kestra/kestra:v1.2.0
+    container_name: kestra
     user: "root"
     command: server standalone
     volumes:
@@ -72,6 +74,15 @@ services:
             type: local
             local:
               basePath: "/app/storage"
+          local-files:
+            allowed-paths:
+              - /app/storage
+          plugins:
+            configurations:
+              - type: io.kestra.plugin.fs.local.Download
+                values:
+                  allowed-paths:
+                    - /app/storage
           queue:
             type: postgres
           tasks:

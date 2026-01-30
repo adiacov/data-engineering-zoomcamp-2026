@@ -16,8 +16,13 @@ def get_root_path() -> Path:
     if env_root:
         return Path(env_root)
 
-    # fallback: search parents
+    # fallback: check cwd
     root_target = "data-engineering-zoomcamp-2026"
+    cwd = Path(os.getcwd())
+    if cwd.name == root_target:
+        return cwd
+
+    # fallback: search parents
     for parent in Path(os.getcwd()).parents:
         if parent.name == root_target:
             return Path(parent)

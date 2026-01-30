@@ -1,0 +1,101 @@
+id: 03_getting_started_data_pipeline
+namespace: zoomcamp
+
+description: An example of a simple ETL pipeline
+
+labels:
+  scope: learn
+  action: copy
+
+inputs:
+  - id: columns_to_keep
+    type: ARRAY
+    itemType: STRING
+    defaults:
+      - brand
+      - price
+
+variables:
+  storage: "/app/storage/learn"
+  download_url: "https://dummyjson.com/products"
+
+  file_raw: "products_raw.json"
+  file_path_raw: "{{ render(vars.storage) }}/{{ render(vars.file_raw) }}"
+
+  file: "products.json"
+  file_path: "{{ render(vars.storage) }}/{{ render(vars.file) }}"
+
+  file_transformed: "products_transformed.json"
+
+tasks:
+  - id: check_file_exists
+    type: io.kestra.plugin.scripts.shell.Commands
+    taskRunner:
+      type: io.kestra.plugin.core.runner.Process
+    commands:
+      - |
+        if [ -f "{{ render(vars.file_path_raw) }}" ]; then
+          echo '::{"outputs":{"file":"EXISTS"}}::'
+        else
+          echo '::{"outputs":{"file":"MISSING"}}::'
+        fi
+
+  - id: extract
+    type: io.kestra.plugin.core.flow.If
+    condition: "{{ outputs.check_file_exists.vars.file == 'EXISTS' }}"
+    then:
+      - id: skip
+        type: io.kestra.plugin.core.log.Log
+        message: "File already exists. Skip download."
+    else:
+      - id: download
+        type: io.kestra.plugin.scripts.shell.Commands
+        taskRunner:
+          type: io.kestra.plugin.core.runner.Process
+        commands:
+          - mkdir -p {{ render(vars.storage) }}
+          - wget -q -O {{ render(vars.file_path_raw) }} {{ render(vars.download_url) }}
+
+  - id: transform
+    type: io.kestra.plugin.scripts.python.Script
+    containerImage: python:3.13-slim
+    inputFiles:
+      data.json: "file://{{ render(vars.file_path_raw) }}"
+    outputFiles:
+      - "*.json"
+    env:
+      COLUMNS_TO_KEEP: "{{ inputs.columns_to_keep }}"
+    script: |
+      import json
+      import os
+
+      # Load target columns to be kept from original json
+      columns_to_keep_str = os.getenv("COLUMNS_TO_KEEP")
+      columns_to_keep = json.loads(columns_to_keep_str)
+
+      # Read json file
+      with open("data.json", "r") as file:
+        data = json.load(file)
+
+      # Keep target columns only
+      filtered_data = [
+        {column: product.get(column, "N/A") for column in columns_to_keep}
+        for product in data["products"]
+      ]
+
+      # Write result json to file. name it as 'file_transformed variable'
+      with open("products_transformed.json", "w") as file:
+        json.dump(filtered_data, file, indent=4)
+
+  - id: query
+    type: io.kestra.plugin.jdbc.duckdb.Queries
+    inputFiles:
+      products_transformed.json: "{{ outputs.transform.outputFiles[render(vars.file_transformed)] }}"
+    sql: |
+      INSTALL json;
+      LOAD json;
+      SELECT brand, round(avg(price), 2) as avg_price
+      FROM read_json_auto('{{ workingDir }}/products_transformed.json')
+      GROUP BY brand
+      ORDER BY avg_price DESC;
+    fetchType: STORE

@@ -1,0 +1,34 @@
+id: 02_python
+namespace: zoomcamp
+
+labels:
+  scope: learn
+  action: copy
+
+tasks:
+  - id: collect_stats
+    type: io.kestra.plugin.scripts.python.Script
+    taskRunner:
+      type: io.kestra.plugin.scripts.runner.docker.Docker
+    containerImage: python:slim
+    dependencies:
+      - requests
+      - kestra
+    script: |
+      from kestra import Kestra
+      import requests
+      def get_docker_image_downloads(image_name: str = "kestra/kestra"):
+        """Queries the Docker Hub API to get the number of downloads for a specific Docker image"""
+        # Dockerhub image url
+        url = f"https://hub.docker.com/v2/repositories/{image_name}"
+        # Make request
+        response = requests.get(url)
+        # Take the count
+        data = response.json()
+        downloads = data.get("pull_count", "Not available")
+
+        return downloads # total count of image download times
+
+      downloads = get_docker_image_downloads()
+      outputs = { "downloads": downloads }
+      Kestra.outputs(outputs)
