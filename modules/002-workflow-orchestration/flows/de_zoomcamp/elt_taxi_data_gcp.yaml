@@ -1,0 +1,149 @@
+id: elt_taxi_data_gcp
+namespace: de_zoomcamp
+description: ELT pipeline for NY taxi trip data in the GCP
+
+labels:
+  scope: learn
+  action: create
+
+inputs:
+  - id: year
+    description: Dataset year. Default 2021.
+    type: SELECT
+    required: true
+    values: ["2019", "2020", "2021"]
+    defaults: "2021"
+
+  - id: month
+    description: Dataset month. Defaule January.
+    type: SELECT
+    required: true
+    defaults: "01: January"
+    values:
+      - "01: January"
+      - "02: February"
+      - "03: March"
+      - "04: April"
+      - "05: May"
+      - "06: June"
+      - "07: July"
+      - "08: August"
+      - "09: September"
+      - "10: October"
+      - "11: November"
+      - "12: December"
+
+  - id: dataset_prefix
+    description: Dataset name prefix. Default `green`.
+    type: SELECT
+    required: true
+    values: ["green", "yellow"]
+    defaults: "green"
+
+variables:
+  month_num: "{{ inputs.month | split(':') | first }}"
+  dataset_name: "{{ inputs.dataset_prefix}}_tripdata_{{ inputs.year }}-{{ render(vars.month_num) }}"
+  dataset_url: "https://github.com/DataTalksClub/nyc-tlc-data/releases/download/{{ inputs.dataset_prefix }}/{{ render(vars.dataset_name) }}.csv.gz"
+  dataset_file: "{{ render(vars.dataset_name) }}.csv"
+
+  # Local Storage
+  dataset_path: "/app/storage/taxi"
+  dataset_uri: "{{ render(vars.dataset_path)}}/{{ render(vars.dataset_file) }}"
+
+  # GCP
+  gs_bucket: "gs://{{kv('GCP_BUCKET_NAME')}}/taxi/"
+  gs_file: "{{vars.gs_bucket}}/{{vars.dataset_file}}"
+
+tasks:
+  - id: log_inputs
+    type: io.kestra.plugin.core.log.Log
+    message:
+      - "Dataset: {{ inputs.dataset_prefix}}"
+      - "Year: {{ inputs.year }}"
+      - "Months: {{ inputs.month }}"
+      - "Computed month: {{render(vars.month_num)}}"
+      - "File: {{ render(vars.dataset_file)}}"
+
+  # Set flow metadata labels
+  - id: set_labels
+    type: io.kestra.plugin.core.execution.Labels
+    description: Add labels for ingested dataset
+    labels:
+      file: "{{ render(vars.dataset_file) }}"
+      taxi: "{{ inputs.dataset_prefix }}"
+
+  - id: list_bucket
+    type: io.kestra.plugin.gcp.gcs.List
+    description: "Get the file size. Use for file existence check"
+    from: "{{render(vars.gs_bucket)}}"
+    regExp: ".*{{ render(vars.dataset_file )}}$"
+
+  - id: check_file_exists_gcp
+    type: io.kestra.plugin.core.execution.SetVariables
+    description: "Set variable to indicate if file exists in GCP"
+    variables:
+      gcp_file_status: |
+        {% if outputs.list_bucket.blobs | length > 0 %}
+          GCP_FILE_EXISTS
+        {% else %}
+          GCP_FILE_MISSING
+        {% endif %}
+
+  - id: log_gcp_status
+    type: io.kestra.plugin.core.log.Log
+    message: "GCP file status: {{ vars.gcp_file_status }}"
+
+  - id: extract
+    type: io.kestra.plugin.core.flow.If
+    description: "Exctract file if missing in the GPC Bucket"
+    condition: "{{ vars.gcp_file_status | trim == 'GCP_FILE_EXISTS'}}"
+    then:
+      - id: extract_skip
+        type: io.kestra.plugin.core.log.Log
+        message: "File exists in GCP Bucket. Skip download."
+    else:
+      - id: extract_locally
+        type: io.kestra.plugin.scripts.shell.Commands
+        description: "Download a file if this does not exist in local storage. Skip otherwise."
+        taskRunner:
+          type: io.kestra.plugin.core.runner.Process
+        outputFiles:
+          - "{{ render(vars.dataset_file) }}"
+        commands:
+          - |
+            mkdir -p {{ render(vars.dataset_path) }}
+
+            if [ -f "{{ render(vars.dataset_uri) }}" ]; then
+              echo "File exists locally. Reusing it."
+            else
+              echo "File missing locally. Downloading."
+              wget -qO- {{ render(vars.dataset_url) }} | gunzip > {{ render(vars.dataset_uri) }}
+            fi
+            # Copy into the task working directory for Kestra pickup
+            cp {{ render(vars.dataset_uri) }} {{ render(vars.dataset_file) }}
+
+  - id: upload_to_gcs
+    type: io.kestra.plugin.core.flow.If
+    condition: "{{ vars.gcp_file_status | trim == 'GCP_FILE_MISSING' }}"
+    then:
+      - id: do_upload_to_gcs
+        type: io.kestra.plugin.gcp.gcs.Upload
+        description: "Uploads file to GCP storage bucket"
+        from: "{{ outputs.extract_locally.outputFiles[render(vars.dataset_file)] }}"
+        to: "{{ vars.gs_bucket }}{{ vars.dataset_file }}"
+    else:
+      - id: skip_upload_to_gcs
+        type: io.kestra.plugin.core.log.Log
+        message: "File exists in GCP. Skip upload"
+
+  - id: purge_files
+    type: io.kestra.plugin.core.storage.PurgeCurrentExecutionFiles
+    description: This removes all files form inputs, outputs, triggers
+
+pluginDefaults:
+  - type: io.kestra.plugin.gcp
+    values:
+      serviceAccount: "{{ secret('GCP_CREDS') }}"
+      projectId: "{{ kv('GCP_PROJECT_ID') }}"
+      location: "{{ kv('GCP_LOCATION') }}"
+      bucket: "{{ kv('GCP_BUCKET_NAME') }}"

@@ -1,0 +1,49 @@
+id: gcp_kv
+namespace: de_zoomcamp
+
+description: Stores key value pairs for GCP objects
+
+labels:
+  scope: learn
+  action: create
+
+inputs:
+  - id: debug
+    description: If true show the values in the logs. Default false.
+    type: BOOL
+    defaults: false
+
+tasks:
+  - id: set_gcp_project_id
+    type: io.kestra.plugin.core.kv.Set
+    key: GCP_PROJECT_ID
+    kvType: STRING
+    value: "project-3d40ca58-5728-4a7f-899"
+
+  - id: set_gcp_location
+    type: io.kestra.plugin.core.kv.Set
+    key: GCP_LOCATION
+    kvType: STRING
+    value: "europe-central2"
+
+  - id: set_gcp_bucket_name
+    type: io.kestra.plugin.core.kv.Set
+    key: GCP_BUCKET_NAME
+    kvType: STRING
+    value: "de_course_bucket"
+
+  - id: set_gcp_dataset_name
+    type: io.kestra.plugin.core.kv.Set
+    key: GCP_DATASET
+    kvType: STRING
+    value: "de_course_dataset"
+
+  - id: log_key_debug
+    type: io.kestra.plugin.core.log.Log
+    runIf: "{{ inputs.debug == 'true' }}"
+    message:
+      - "{{ secret('GCP_CREDS') }}"
+      - "{{ kv('GCP_PROJECT_ID') }}"
+      - "{{ kv('GCP_LOCATION') }}"
+      - "{{ kv('GCP_BUCKET_NAME') }}"
+      - "{{ kv('GCP_DATASET') }}"
