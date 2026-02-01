@@ -1,38 +1,12 @@
-id: elt_taxi_data_gcp
+id: elt_taxi_data_gcp_scheduled
 namespace: de_zoomcamp
-description: ELT pipeline for NY taxi trip data in the GCP
+description: ELT pipeline for NY taxi trip data in the GCP, shceduled
 
 labels:
   scope: learn
   action: create
 
 inputs:
-  - id: year
-    description: Dataset year. Default 2021.
-    type: SELECT
-    required: true
-    values: ["2019", "2020", "2021"]
-    defaults: "2021"
-
-  - id: month
-    description: Dataset month. Defaule January.
-    type: SELECT
-    required: true
-    defaults: "01: January"
-    values:
-      - "01: January"
-      - "02: February"
-      - "03: March"
-      - "04: April"
-      - "05: May"
-      - "06: June"
-      - "07: July"
-      - "08: August"
-      - "09: September"
-      - "10: October"
-      - "11: November"
-      - "12: December"
-
   - id: dataset_prefix
     description: Dataset name prefix. Default `green`.
     type: SELECT
@@ -41,19 +15,17 @@ inputs:
     defaults: "green"
 
 variables:
-  month_num: "{{ inputs.month | split(':') | first }}"
-  dataset_name: "{{ inputs.dataset_prefix}}_tripdata_{{ inputs.year }}-{{ render(vars.month_num) }}"
-  dataset_url: "https://github.com/DataTalksClub/nyc-tlc-data/releases/download/{{ inputs.dataset_prefix }}/{{ render(vars.dataset_name) }}.csv.gz"
-  dataset_file: "{{ render(vars.dataset_name) }}.csv"
+  dataset_file: "{{ inputs.dataset_prefix}}_tripdata_{{ trigger.date | date('yyyy-MM') }}.csv"
+  dataset_url: "https://github.com/DataTalksClub/nyc-tlc-data/releases/download/{{ inputs.dataset_prefix }}/{{ vars.dataset_file }}.gz"
 
   # Local Storage
   dataset_path: "/app/storage/taxi"
-  dataset_uri: "{{ render(vars.dataset_path)}}/{{ render(vars.dataset_file) }}"
+  dataset_uri: "{{ vars.dataset_path}}/{{ vars.dataset_file }}"
 
   # GCP
   gs_bucket: "gs://{{kv('GCP_BUCKET_NAME')}}/taxi/"
   gs_file: "{{vars.gs_bucket}}{{vars.dataset_file}}"
-  table: "{{kv('GCP_DATASET')}}.{{inputs.dataset_prefix}}_tripdata_{{inputs.year}}_{{vars.month_num}}"
+  table: "{{kv('GCP_DATASET')}}.{{inputs.dataset_prefix}}_tripdata_{{ trigger.date | date('yyyy_MM') }}"
 
 tasks:
   - id: log_inputs
@@ -61,9 +33,6 @@ tasks:
     description: "Debug logs."
     message:
       - "Dataset: {{ inputs.dataset_prefix}}"
-      - "Year: {{ inputs.year }}"
-      - "Months: {{ inputs.month }}"
-      - "Computed month: {{render(vars.month_num)}}"
       - "File: {{ render(vars.dataset_file)}}"
       - "GCS File: {{ render(vars.gs_file) }}"
 
@@ -333,3 +302,15 @@ pluginDefaults:
       serviceAccount: "{{ secret('GCP_CREDS') }}"
       projectId: "{{ kv('GCP_PROJECT_ID') }}"
       location: "{{ kv('GCP_LOCATION') }}"
+
+triggers:
+  - id: green_schedule
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "0 9 1 * *" # every each month on first date at 9 AM
+    inputs:
+      dataset_prefix: green
+  - id: yellow_schedule
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "0 19 1 * *" # On first day of each month at 10 AM
+    inputs:
+      dataset_prefix: yellow
