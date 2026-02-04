@@ -41,3 +41,9 @@ resource "google_bigquery_dataset" "de_dataset" {
   project    = var.project
   location   = var.location
 }
+
+resource "google_bigquery_dataset" "de_taxi_rides_ny" {
+  dataset_id = var.bq_dataset_taxi_rides_ny_name
+  project    = var.project
+  location   = var.location
+}

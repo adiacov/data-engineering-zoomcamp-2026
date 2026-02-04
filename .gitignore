@@ -265,3 +265,4 @@ terraform.rc
 # Custom
 *.parquet
 dev/
+.env.warehouse

@@ -41,5 +41,5 @@ def set_logging():
     """Set logging"""
     logging.basicConfig(
         level=logging.INFO,  # Set the minimum level to log (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-        format="%(asctime)s - %(levelname)s - %(message)s",  # Define the message format
+        format="%(asctime)s - %(levelname)s - [%(name)s] - %(message)s",  # Define the message format
     )

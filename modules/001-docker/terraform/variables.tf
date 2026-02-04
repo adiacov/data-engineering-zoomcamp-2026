@@ -32,3 +32,8 @@ variable "bq_dataset_name" {
   description = "DE bigquery dataset name"
   default     = "de_course_dataset"
 }
+
+variable "bq_dataset_taxi_rides_ny_name" {
+  description = "DE bigquery dataset for module 3"
+  default = "taxi_rides_ny"
+}
