@@ -5,7 +5,7 @@
 
 ## HOMEWORK
 
-[Check out Homework in the homework.md file](./homework.md)
+[Check out Homework in the homework.md file](./homework.sql)
 
 # Videos
 
