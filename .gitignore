@@ -266,3 +266,5 @@ terraform.rc
 *.parquet
 dev/
 .env.warehouse
+profiles.yml
+profiles.yaml

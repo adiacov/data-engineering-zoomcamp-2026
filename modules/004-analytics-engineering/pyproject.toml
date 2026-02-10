@@ -1,0 +1,18 @@
+[project]
+name = "analytics"
+version = "0.1.0"
+description = "Data Engineering Zoomcamp — Module 04 Analytics Engineering"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+]
+
+[project.scripts]
+m4 = "analytics.main:main"
+
+[tool.uv.sources]
+common = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

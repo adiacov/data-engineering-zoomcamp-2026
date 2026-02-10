@@ -8,11 +8,17 @@ resolution-markers = [
 
 [manifest]
 members = [
+    "analytics",
     "common",
     "pipeline",
     "warehouse",
     "workflow",
 ]
+
+[[package]]
+name = "analytics"
+version = "0.1.0"
+source = { editable = "modules/004-analytics-engineering" }
 
 [[package]]
 name = "certifi"
