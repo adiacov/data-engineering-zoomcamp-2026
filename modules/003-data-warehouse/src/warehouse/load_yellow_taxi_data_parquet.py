@@ -63,7 +63,7 @@ def _load_file_to_gcs(file: Path) -> None:
 # Normally, this would be a more robust function
 
 
-def load_yellow_taxi_data():
+def load_yellow_taxi_data_parquet():
     """Loads yellow taxi data parquet files to Google Cloud Storage"""
 
     logger.info("Loading taxi datasets to GCS...")

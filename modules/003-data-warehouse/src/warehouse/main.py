@@ -1,4 +1,5 @@
-from warehouse.load_yellow_taxi_data import load_yellow_taxi_data
+from warehouse.load_yellow_taxi_data_parquet import load_yellow_taxi_data_parquet
+from warehouse.load_yellow_taxi_data_csv import stream_csv_gz_url_to_gcs
 
 from dotenv import load_dotenv
 import logging
@@ -27,7 +28,16 @@ def main():
         )
         logger.info("Start loading data to GCS...")
 
-        load_yellow_taxi_data()
+        # Loads yellow taxi data parquet files to Google Cloud Storage
+        # load_yellow_taxi_data_parquet()
+
+        # Loads as a stream, a .csv.gz file from URL directly to GCS bucket
+        month = "03"  # which month do download the yellow trip data 2019
+        stream_csv_gz_url_to_gcs(
+            url=f"https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2019-{month}.csv.gz",
+            bucket_name="de_course_bucket",
+            blob_name=f"taxi/yellow_tripdata_2019-{month}.csv",
+        )
 
         logger.info("Finished loading data to Google Cloud Storage")
     else:
