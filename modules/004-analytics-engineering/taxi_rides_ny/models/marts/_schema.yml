@@ -1,0 +1,59 @@
+version: 2
+
+models:
+  - name: dim_zones
+    description: >
+      Lookup table containing taxi zone metadata for NYC Taxi data.
+      Each record represents a unique geographic taxi zone identified by LocationID.
+
+    columns:
+      - name: location_id
+        description: >
+          Unique numeric identifier for each taxi zone.
+          This field is used as the primary key of the table and
+          serves as a foreign key in taxi trip datasets (e.g., PULocationID and DOLocationID).
+        tests:
+          - not_null
+          - unique
+
+      - name: borough
+        description: >
+          Name of the New York City borough in which the taxi zone is located.
+          Expected values correspond to official NYC borough names.
+        tests:
+          - not_null
+
+      - name: zone
+        description: >
+          Descriptive name of the taxi zone.
+          Represents a neighborhood or area within a borough.
+        tests:
+          - not_null
+
+      - name: service_zone
+        description: >
+          Service classification of the taxi zone.
+          Indicates whether the zone belongs to a specific taxi service region
+          (e.g., Yellow Taxi core service area, Boro Taxi area, or airports).
+        tests:
+          - not_null
+
+  - name: dim_vendors
+    description: >
+      Dimension table containing taxi trip vendor information.
+      Each record represents a distinct vendor that provides taxi trip services.
+
+    columns:
+      - name: vendor_id
+        description: Unique identifier for the taxi vendor.
+        tests:
+          - not_null
+          - unique
+
+      - name: vendor_name
+        description: >
+          Full name of the taxi vendor associated with the vendor_id.
+          Represents the company providing the taxi trip service.
+        tests:
+          - not_null
+          - unique
