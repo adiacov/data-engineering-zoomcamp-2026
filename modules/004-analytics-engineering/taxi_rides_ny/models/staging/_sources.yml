@@ -1,0 +1,13 @@
+version: 2
+
+sources:
+  - name: dbt_raw_taxi_rides_ny
+    description: "Raw data sources for NYC taxi rides"
+    schema: dbt_raw_taxi_rides_ny
+    tables:
+      - name: dbt_green_tripdata
+        description: "Raw data source for NYC green taxi rides"
+      - name: dbt_yellow_tripdata
+        description: "Raw data source for NYC yellow taxi rides"
+      - name: taxi_zone_lookup
+        description: "NY taxi zone lookup table"

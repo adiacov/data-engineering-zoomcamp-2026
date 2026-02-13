@@ -1,0 +1,1 @@
+select * from {{ source("dbt_raw_taxi_rides_ny", "taxi_zone_lookup") }}
