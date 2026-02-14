@@ -1,6 +1,11 @@
 
 with source as (
-    select * from {{ source("dbt_raw_taxi_rides_ny", "dbt_yellow_tripdata") }}
+    select 
+        *
+    from {{ source("dbt_raw_taxi_rides_ny", "dbt_yellow_tripdata") }}
+    where
+        extract(year from tpep_pickup_datetime) in (2019, 2020) and
+        extract(year from tpep_dropoff_datetime) in (2019, 2020)
 ),
 
 renamed as (
@@ -12,7 +17,7 @@ renamed as (
         cast(DOLocationID as integer) as dropoff_location_id,
         -- timestamps
         cast(tpep_pickup_datetime as timestamp) as pickup_datetime,
-        cast(tpep_dropoff_datetime as timestamp) as dropoff_date,
+        cast(tpep_dropoff_datetime as timestamp) as dropoff_datetime,
         -- trip info
         cast(store_and_fwd_flag as string) as store_and_fwd_flag,
         cast(passenger_count as integer) as passenger_count,

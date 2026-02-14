@@ -1,6 +1,13 @@
 
 with source as (
-    select * from {{ source("dbt_raw_taxi_rides_ny", "dbt_green_tripdata") }}
+    select 
+        *,
+        extract(year from lpep_pickup_datetime) as pickup_year,
+        extract(year from lpep_dropoff_datetime) as dropoff_year
+    from {{ source("dbt_raw_taxi_rides_ny", "dbt_green_tripdata") }}
+    where 
+        extract(year from lpep_pickup_datetime) in (2019, 2020) and
+        extract(year from lpep_dropoff_datetime) in (2019, 2020)
 ),
 
 renamed as (
@@ -27,7 +34,7 @@ renamed as (
         cast(improvement_surcharge as numeric) as improvement_surcharge,
         cast(total_amount as numeric) as total_amount,
         cast(payment_type as integer) as payment_type,
-        cast(ehail_fee as numeric) as ehail_fee,
+        cast(ehail_fee as numeric) as ehail_fee
 
     from source
     -- Filter out records with null vendorID

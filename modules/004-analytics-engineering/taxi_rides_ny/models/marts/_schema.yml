@@ -46,9 +46,13 @@ models:
     columns:
       - name: vendor_id
         description: Unique identifier for the taxi vendor.
-        tests:
+        data_tests:
           - not_null
           - unique
+          - accepted_values:
+              arguments:
+                values: [1, 2, 4]
+                quote: false
 
       - name: vendor_name
         description: >

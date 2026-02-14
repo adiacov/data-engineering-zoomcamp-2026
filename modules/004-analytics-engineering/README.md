@@ -2,6 +2,9 @@
 
 Goal: Transforming the data loaded in DWH into Analytical Views developing a [dbt project](taxi_rides_ny/README.md).
 
+## Homework
+[Homework](./homework.md)
+
 ### Prerequisites
 
 The prerequisites depend on which setup path you choose:
