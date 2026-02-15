@@ -1,11 +1,6 @@
 
 with source as (
-    select 
-        *
-    from {{ source("dbt_raw_taxi_rides_ny", "dbt_yellow_tripdata") }}
-    where
-        extract(year from tpep_pickup_datetime) in (2019, 2020) and
-        extract(year from tpep_dropoff_datetime) in (2019, 2020)
+    select * from {{ source("dbt_raw_taxi_rides_ny", "dbt_yellow_tripdata") }}
 ),
 
 renamed as (
@@ -33,6 +28,7 @@ renamed as (
         cast(total_amount as numeric) as total_amount,
         cast(payment_type as integer) as payment_type,
         0 as ehail_fee, -- prepare for union with green_tripdata. yellow taxi do not have ehail fees
+        'Yellow' as service_type,
     from source
     -- Filter out records with null vendorID
     where VendorID is not null

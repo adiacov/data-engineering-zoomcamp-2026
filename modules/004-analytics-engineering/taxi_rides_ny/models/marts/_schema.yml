@@ -46,7 +46,7 @@ models:
     columns:
       - name: vendor_id
         description: Unique identifier for the taxi vendor.
-        data_tests:
+        tests:
           - not_null
           - unique
           - accepted_values:
@@ -61,3 +61,16 @@ models:
         tests:
           - not_null
           - unique
+
+  - name: dim_payments
+    description: "Payment dimension"
+    columns:
+      - name: payment_type
+        description: "Payment code"
+        tests:
+          - not_null
+          - unique
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5, 6]
+                quote: false
