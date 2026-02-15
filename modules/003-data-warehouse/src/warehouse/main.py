@@ -1,5 +1,5 @@
 from warehouse.load_yellow_taxi_data_parquet import load_yellow_taxi_data_parquet
-from warehouse.load_yellow_taxi_data_csv import stream_csv_gz_url_to_gcs
+from warehouse.load_data_csv import stream_csv_gz_url_to_gcs
 
 from dotenv import load_dotenv
 import logging
@@ -9,6 +9,12 @@ from common.config import set_logging
 set_logging()
 logger = logging.getLogger(__name__)
 load_dotenv(".env.warehouse")
+
+
+def _get_file_name_form_gz_url(url: str) -> str:
+    last_part: str = url.split("/")[-1]
+    final = last_part.removesuffix(".gz")
+    return final
 
 
 def main():
@@ -32,12 +38,23 @@ def main():
         # load_yellow_taxi_data_parquet()
 
         # Loads as a stream, a .csv.gz file from URL directly to GCS bucket
-        month = "03"  # which month do download the yellow trip data 2019
-        stream_csv_gz_url_to_gcs(
-            url=f"https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2019-{month}.csv.gz",
-            bucket_name="de_course_bucket",
-            blob_name=f"taxi/yellow_tripdata_2019-{month}.csv",
-        )
+        # month = "03"  # which month do download the yellow trip data 2019
+        # stream_csv_gz_url_to_gcs(
+        #     url=f"https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2019-{month}.csv.gz",
+        #     bucket_name="de_course_bucket",
+        #     blob_name=f"taxi/yellow_tripdata_2019-{month}.csv",
+        # )
+
+        # LOAD FHV DATA FOR A WHOLE YEAR
+        year = 2019
+        for m in range(1, 13):
+            month = f"{m:02d}"
+            url = f"https://github.com/DataTalksClub/nyc-tlc-data/releases/download/fhv/fhv_tripdata_{year}-{month}.csv.gz"
+            stream_csv_gz_url_to_gcs(
+                url=url,
+                bucket_name="de_course_bucket",
+                blob_name=f"fhv/{_get_file_name_form_gz_url(url)}",
+            )
 
         logger.info("Finished loading data to Google Cloud Storage")
     else:

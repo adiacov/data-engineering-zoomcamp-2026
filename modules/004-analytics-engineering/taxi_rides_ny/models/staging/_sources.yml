@@ -11,3 +11,5 @@ sources:
         description: "Raw data source for NYC yellow taxi rides"
       - name: taxi_zone_lookup
         description: "NY taxi zone lookup table"
+      - name: dbt_fhv_tripdata
+        description: "High Volume FHV Trip Records"

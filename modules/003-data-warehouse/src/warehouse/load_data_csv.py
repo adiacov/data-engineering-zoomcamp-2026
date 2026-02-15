@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 def stream_csv_gz_url_to_gcs(url: str, bucket_name: str, blob_name: str):
-    """Loads yellow taxi data CSV files to Google Cloud Storage"""
+    """Loads data CSV files to Google Cloud Storage"""
     
     storage_client = storage.Client()
     bucket = storage_client.bucket(bucket_name)

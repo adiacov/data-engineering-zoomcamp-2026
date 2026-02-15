@@ -8,10 +8,6 @@ This was done for several reasons:
 - I implemented it one way, but it differs from the solution in the GitHub repository for Module 4.
 
 Unfortunately, the instructions or description on how this model should be constructed are completely missing.
-
-There is one issue with the solution in the Module 4 code: it doesn’t group by YEAR. 
-As a result, the model combines the revenue_monthly_total_amount for both 2019 and 2020. 
-In my opinion, we should have separate revenue_monthly_total_amount values for each year.
 */
 
 
