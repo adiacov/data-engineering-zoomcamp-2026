@@ -1,2 +1,3 @@
 [tool.uv.workspace]
 members = ["modules/*"]
+exclude = ["modules/005-data-platforms"]

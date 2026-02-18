@@ -1,0 +1,4 @@
+name: taxi-rides-ny
+
+default_connections:
+    google_cloud_platform: gcp-target

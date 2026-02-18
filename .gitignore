@@ -268,3 +268,8 @@ dev/
 .env.warehouse
 profiles.yml
 profiles.yaml
+
+.bruin.yml
+logs/runs
+logs/*.log
+*.py[cod]

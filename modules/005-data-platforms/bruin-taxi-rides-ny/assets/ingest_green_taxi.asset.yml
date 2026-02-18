@@ -1,0 +1,13 @@
+name: bruin_raw_taxi_rides_ny.green_tripdata
+type: ingestr
+
+parameters:
+  destination: bigquery
+  source_connection: "gcs-source"
+  source_table: "gs://de_course_bucket/taxi/green_tripdata_2019-01.csv"
+
+  incremental_strategy: replace
+
+columns:
+  - name: ehail_fee
+    type: numeric
