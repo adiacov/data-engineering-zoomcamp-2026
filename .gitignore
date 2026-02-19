@@ -273,3 +273,7 @@ profiles.yaml
 logs/runs
 logs/*.log
 *.py[cod]
+logs/queries
+
+tmp/
+duckdb.db
