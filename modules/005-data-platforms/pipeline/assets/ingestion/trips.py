@@ -143,9 +143,7 @@ surcharge began being levied in 2015."
 # - Put dependencies in the nearest `requirements.txt` (this template has one at the pipeline root).
 # Docs: https://getbruin.com/docs/bruin/assets/python
 import pandas as pd
-import requests
 
-from typing import List, Tuple
 import os
 import json
 
@@ -222,6 +220,7 @@ def materialize():
     for taxi_type in taxi_types:
         for year, month in dates:
             df = fetch_trip_data(taxi_type, year, month)
+            df["extracted_at"] = pd.Timestamp.now(tz="UTC")
             result = pd.concat([result, df], ignore_index=True)
 
     return result

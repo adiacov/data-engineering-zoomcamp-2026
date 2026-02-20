@@ -4,8 +4,7 @@ version = "0.1.0"
 description = "Data Engineering Zoomcamp — Module 04 Analytics Engineering"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = [
-]
+dependencies = []
 
 [project.scripts]
 m4 = "analytics.main:main"
