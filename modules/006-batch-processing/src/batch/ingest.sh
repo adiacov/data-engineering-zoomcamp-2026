@@ -1,6 +1,0 @@
-
-
-YEAR=2024
-MONTH=11
-
-echo ${YEAR} ${MONTH}
