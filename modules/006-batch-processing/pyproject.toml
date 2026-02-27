@@ -5,8 +5,14 @@ description = "Data Engineering Zoomcamp — Module 6: Batch Processing"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    # local deps
+    "common",
+    # remote deps
     "pyspark>=4.1.1",
 ]
+
+[tool.uv.sources]
+common = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]

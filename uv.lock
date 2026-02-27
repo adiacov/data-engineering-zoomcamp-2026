@@ -78,11 +78,15 @@ name = "batch"
 version = "0.1.0"
 source = { editable = "modules/006-batch-processing" }
 dependencies = [
+    { name = "common" },
     { name = "pyspark" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "pyspark", specifier = ">=4.1.1" }]
+requires-dist = [
+    { name = "common", editable = "modules/common" },
+    { name = "pyspark", specifier = ">=4.1.1" },
+]
 
 [[package]]
 name = "certifi"
