@@ -15,9 +15,9 @@ DATASET_GREEN_PATH = TAXI_PATH / "clean" / "green" / "2025" / "11"
 DATASET_YELLOW_PATH = TAXI_PATH / "clean" / "yellow" / "2025" / "11"
 DATASET_ZONES = DATA_PATH / "taxi_zone_lookup.csv"
 DATASET_REPORT_PATH = TAXI_PATH / "report" / "revenue"
-REPORT_REVENUE_ZONE = DATASET_REPORT_PATH / "zone"  # total revenue per zone
+REPORT_REVENUE_ZONE = DATASET_REPORT_PATH / "revenue_by_zone"  # total revenue per zone
 REPORT_REVENUE_VENDOR_ZONE = (
-    DATASET_REPORT_PATH / "vendor_zone"
+    DATASET_REPORT_PATH / "revenue_by_vendor_zone"
 )  # total revenue per vendor and zone
 
 print("[INFO] Loading dataset clean/green/2025/11")
@@ -53,29 +53,20 @@ df_zones = F.broadcast(df_zones)
 df_joined = df_combined.join(df_zones, on="location_id")
 
 print("[INFO] Generating report: total revenue by zone")
-df_revenue_zone = spark.sql(
-    """
-SELECT
-    zone,
-    CAST(SUM(total_amount) AS DECIMAL(20, 2)) as revenue
-FROM taxi_with_zones
-GROUP BY zone
-ORDER BY revenue DESC
-"""
+df_revenue_zone = (
+    df_joined.groupBy("zone")
+    .agg(F.sum("total_amount").cast("decimal(20, 2)").alias("revenue"))
+    .sort(F.desc("revenue"))
 )
+
+print("[INFO] Generating report: total revenue by vendor_id and zone")
+df_revenue_vendor_zone = (
+    df_joined.groupBy("vendor_id", "zone")
+    .agg(F.sum("total_amount").cast("decimal(20, 2)").alias("revenue"))
+    .sort([F.col("vendor_id"), F.desc("revenue")])
+)
+
+print("[INFO] Writing report to file: revenue by zon")
 df_revenue_zone.write.parquet(str(REPORT_REVENUE_ZONE), mode="overwrite")
-
-print("[INFO] Generating report: total revenue per vendor per zone")
-df_revenue_vendor_zone = spark.sql(
-    """
-SELECT
-    vendor_id,
-    zone,
-    CAST(SUM(total_amount) AS DECIMAL(20, 2)) as revenue
-FROM taxi_with_zones
-GROUP BY vendor_id, zone
-ORDER by vendor_id, revenue DESC
-"""
-)
-
+print("[INFO] Writing report to file: revenue by vendor_id and zone")
 df_revenue_vendor_zone.write.parquet(str(REPORT_REVENUE_VENDOR_ZONE), mode="overwrite")
