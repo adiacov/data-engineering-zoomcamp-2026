@@ -1,24 +1,18 @@
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as F
 
-spark = (
-    SparkSession.builder.master("local[*]").appName("taxi-revenue-report").getOrCreate()
-)
-spark.version
-
-from common.config import get_root_path
+spark = SparkSession.builder.appName("taxi-revenue-report").getOrCreate()
 
 # Declare dataset paths
-DATA_PATH = get_root_path() / "data"
-TAXI_PATH = DATA_PATH / "taxi"
-DATASET_GREEN_PATH = TAXI_PATH / "clean" / "green" / "2025" / "11"
-DATASET_YELLOW_PATH = TAXI_PATH / "clean" / "yellow" / "2025" / "11"
-DATASET_ZONES = DATA_PATH / "taxi_zone_lookup.csv"
-DATASET_REPORT_PATH = TAXI_PATH / "report" / "revenue"
-REPORT_REVENUE_ZONE = DATASET_REPORT_PATH / "revenue_by_zone"  # total revenue per zone
+TAXI_PATH = "gs://de_course_bucket/taxi/parquet/clean"
+DATASET_GREEN_PATH = f"{TAXI_PATH}/green"
+DATASET_YELLOW_PATH = f"{TAXI_PATH}/yellow"
+DATASET_ZONES = "gs://de_course_bucket/code/cloud_clean_taxi.py"
+DATASET_REPORT_PATH = f"{TAXI_PATH}/report/revenue"
+REPORT_REVENUE_ZONE = f"{DATASET_REPORT_PATH}/revenue_by_zone"  # total revenue per zone
 REPORT_REVENUE_VENDOR_ZONE = (
-    DATASET_REPORT_PATH / "revenue_by_vendor_zone"
-)  # total revenue per vendor and zone
+    f"{DATASET_REPORT_PATH}/revenue_by_vendor_zone"  # total revenue per vendor and zone
+)
 
 print("[INFO] Loading dataset clean/green/2025/11")
 green_df = spark.read.parquet(str(DATASET_GREEN_PATH))

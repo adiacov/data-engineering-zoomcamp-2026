@@ -35,5 +35,10 @@ variable "bq_dataset_name" {
 
 variable "bq_dataset_taxi_rides_ny_name" {
   description = "DE bigquery dataset for module 3"
-  default = "taxi_rides_ny"
+  default     = "taxi_rides_ny"
+}
+
+variable "dataproc_cluster_name" {
+  description = "DE dataproc cluster name"
+  default     = "de-spark-cluster"
 }

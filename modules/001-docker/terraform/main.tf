@@ -26,7 +26,7 @@ resource "google_storage_bucket" "de_course_bucket" {
 
   lifecycle_rule {
     condition {
-      age = 30 // days
+      age = 90 // days
     }
     action {
       type = "Delete"
@@ -46,4 +46,31 @@ resource "google_bigquery_dataset" "de_taxi_rides_ny" {
   dataset_id = var.bq_dataset_taxi_rides_ny_name
   project    = var.project
   location   = var.location
+}
+
+resource "google_dataproc_cluster" "de_spark_cluster" {
+  name   = var.dataproc_cluster_name
+  region = var.region
+
+  project = var.project
+
+  cluster_config {
+    master_config {
+      num_instances = 1
+      machine_type  = "e2-medium"
+      disk_config {
+        boot_disk_type    = "pd-ssd"
+        boot_disk_size_gb = 30
+      }
+    }
+
+    worker_config {
+      num_instances = 4
+      machine_type  = "e2-medium"
+      disk_config {
+        boot_disk_size_gb = 30
+        num_local_ssds    = 1
+      }
+    }
+  }
 }

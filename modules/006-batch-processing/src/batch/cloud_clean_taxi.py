@@ -4,8 +4,6 @@ import pyspark.sql.functions as F
 
 import argparse
 
-from common.config import get_root_path
-
 # Handle program arguments
 parser = argparse.ArgumentParser("Clean Taxi Dataset")
 
@@ -27,13 +25,16 @@ month = f"{int(args.month):02d}"
 
 
 # Declare dataset paths
-TAXI_PATH = get_root_path() / "data" / "taxi"
-DATASET_RAW_PATH = TAXI_PATH / "ingestion" / taxi_type / year / month
-DATASET_CLEAN_PATH = TAXI_PATH / "clean" / taxi_type / year / month
+# gs://de_course_bucket/taxi/parquet/green_tripdata_2025-11.parquet
+# TAXI_PATH = "gs://de_course_bucket/taxi/parquet"
+DATASET_RAW_PATH = (
+    f"gs://de_course_bucket/taxi/parquet/{taxi_type}_tripdata_{year}-{month}.parquet"
+)
+DATASET_CLEAN_PATH = f"gs://de_course_bucket/taxi/parquet/clean/{taxi_type}"
 
 
 # Create a spark session
-spark = SparkSession.builder.master("local[*]").appName("taxi-rides-app").getOrCreate()
+spark = SparkSession.builder.appName("taxi-rides-app").getOrCreate()
 
 print("[INFO] Starting spark session")
 
@@ -47,6 +48,8 @@ if not spark.version:
 print(f"[INFO] Reading raw dataset {taxi_type}/{year}/{month}")
 dataset_file_path = str(DATASET_RAW_PATH)
 df = spark.read.parquet(dataset_file_path)
+print(f"[INFO] Columns for {dataset_file_path}: ")
+print(df.columns)
 
 # Normalize - rename columns, group columns
 print("[INFO] Normalizing dataset")
