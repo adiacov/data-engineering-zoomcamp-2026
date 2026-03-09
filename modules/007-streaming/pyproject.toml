@@ -4,7 +4,14 @@ version = "0.1.0"
 description = "Data Engineering Zoomcamp — Module 7: Streaming"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = ["common", "kafka-python>=2.3.0"]
+
+[project.scripts]
+produce = "streaming.producer:main"
+consume = "streaming.consumer:main"
+
+[tool.uv.sources]
+common = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]
