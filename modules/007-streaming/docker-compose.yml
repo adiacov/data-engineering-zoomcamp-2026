@@ -6,6 +6,8 @@ networks:
 
 volumes:
   redpanda: null
+  streaming_taxi_data: null
+  streaming_pgadmin_data: null
 
 services:
   redpanda:
@@ -48,3 +50,36 @@ services:
       KAFKA_BROKERS: "redpanda:9092"
     networks:
       - redpanda_network
+
+  postgres:
+    image: postgres:18
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=ny_taxi
+    ports:
+      - 5432:5432
+    volumes:
+      - streaming_taxi_data:/var/lib/postgresql
+    networks:
+      - redpanda_network
+    depends_on:
+      redpanda:
+        condition: service_started
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@admin.com"
+      PGADMIN_DEFAULT_PASSWORD: "admin"
+    volumes:
+      - streaming_pgadmin_data:/var/lib/pgadmin
+    ports:
+      - 5050:80
+    networks:
+      - redpanda_network
+    depends_on:
+      postgres:
+        condition: service_started
