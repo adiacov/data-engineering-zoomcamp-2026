@@ -1,5 +1,5 @@
 from kafka import KafkaProducer
-from streaming.ride import Ride
+from streaming.model import Ride
 import pandas as pd
 from common.benchmark import benchmark
 

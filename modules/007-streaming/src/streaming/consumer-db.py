@@ -2,7 +2,7 @@ from kafka import KafkaConsumer
 from streaming.model import Ride
 
 # Current consumer read messages from a topic and
-# displays the message value to the console output
+# stores the message value into database
 
 
 def main():
