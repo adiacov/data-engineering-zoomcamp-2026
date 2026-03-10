@@ -9,6 +9,7 @@ dependencies = ["common", "kafka-python>=2.3.0"]
 [project.scripts]
 produce = "streaming.producer:main"
 consume = "streaming.consumer:main"
+consume_db="streaming.consumer_db:main"
 
 [tool.uv.sources]
 common = { workspace = true }
