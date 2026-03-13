@@ -23,9 +23,9 @@ def main():
         value_serializer=Ride.value_serializer,
     )
 
-    topic = "test-topic"
+    topic = "taxi-rides"
 
-    rides: pd.DataFrame = Ride.rides().head(100)
+    rides: pd.DataFrame = Ride.rides()
     for record in rides.to_dict(orient="records"):
         ride = Ride.from_record(record)
         future = producer.send(

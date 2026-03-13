@@ -4,16 +4,21 @@ version = "0.1.0"
 description = "Data Engineering Zoomcamp — Module 7: Streaming"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = ["common", "kafka-python>=2.3.0"]
+dependencies = [
+    "apache-flink==2.2.0",
+    "hatchling>=1.29.0",
+    "kafka-python>=2.3.0",
+    "setuptools",
+    "sqlalchemy",
+    "psycopg2-binary",
+]
 
-[project.scripts]
-produce = "streaming.producer:main"
-consume = "streaming.consumer:main"
-consume_db="streaming.consumer_db:main"
+[tool.uv.extra-build-dependencies]
+apache-beam = ["setuptools"]
 
-[tool.uv.sources]
-common = { workspace = true }
+[tool.hatch.build.targets.wheel]
+packages = ["src/streaming"]
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "editables"]
 build-backend = "hatchling.build"
