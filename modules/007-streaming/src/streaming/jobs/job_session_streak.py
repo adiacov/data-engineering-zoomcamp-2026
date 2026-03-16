@@ -12,7 +12,7 @@ from sqlalchemy import (
     TIMESTAMP,
 )
 
-PROCESSED_EVENTS_TABLE = "processed_events_aggregated"
+PROCESSED_EVENTS_TABLE = "processed_events_streak"
 
 
 def source_events_kafka(t_env):
@@ -64,35 +64,37 @@ def sink_events_postgres(t_env):
 
 
 def log_processing():
-    # set execution environment
     env = StreamExecutionEnvironment.get_execution_environment()
-    env.enable_checkpointing(10 * 1000)  # checkpoint every 10 seconds
+    env.enable_checkpointing(10 * 1000)  # checkpoint every 10s
     env.set_parallelism(1)
 
-    # set table environment
     settings = EnvironmentSettings.new_instance().in_streaming_mode().build()
     t_env = StreamTableEnvironment.create(env, settings)
 
     try:
-        # create kafka table
         source = source_events_kafka(t_env)
         sink = sink_events_postgres(t_env)
 
-        # write records to postgres
         t_env.execute_sql(
             f"""
-                INSERT INTO {sink}
-                SELECT
-                    window_start,
-                    pickup_location_id,
-                    COUNT(*) AS num_trips,
-                    SUM(total_amount) AS total_revenue
-                FROM TABLE (
-                    TUMBLE(TABLE {source}, DESCRIPTOR(event_timestamp), INTERVAL '1' HOUR)
+            INSERT INTO {sink}
+            SELECT
+                window_start,
+                pickup_location_id,
+                COUNT(*) AS num_trips,
+                SUM(total_amount) AS total_revenue
+            FROM TABLE (
+                SESSION(
+                    TABLE {source},
+                    DESCRIPTOR(event_timestamp),
+                    INTERVAL '5' MINUTE
                 )
-                GROUP BY window_start, pickup_location_id;
+            )
+            GROUP BY window_start, pickup_location_id
             """
         ).wait()
+
+        print("[INFO] Streaming job executed successfully!")
 
     except Exception as e:
         print("[ERROR] Stream Table failed: ", str(e))
