@@ -279,3 +279,5 @@ tmp/
 duckdb.db
 
 commands.md
+
+.dbt.profiles.yaml.bak
